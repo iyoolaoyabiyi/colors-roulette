@@ -9,8 +9,8 @@
     - **Stop**: Halt the generation process using the "stop" button.
     - **Reset**: Reset the application to its initial state with the "reset" button.
 
-2. **Customizable Generation Delay**:
-    - Users can set the delay interval for color generation between 100 and 5000 milliseconds using the "set delay" button and corresponding input field.
+2. **Customizable Generation Speed**:
+    - Users can set the speed interval for color generation between 100 and 5000 milliseconds using the "set speed" button and corresponding input field.
 
 3. **Color Details Display**:
     - **Color Information**: Detailed information about the generated color, including its name, hexadecimal code, RGB, and HSL values.
@@ -23,7 +23,7 @@
 
 5. **Real-time Stats**:
     - **Status**: Indicates whether the application is idle, generating colors, or stopped.
-    - **Delay**: Displays the current delay interval for color generation.
+    - **Speed**: Displays the current speed interval for color generation.
     - **Total Colors Generated**: Shows the number of colors generated in the current session.
 
 6. **Enhanced User Interface**:
@@ -33,15 +33,15 @@
 ## How to Use
 
 1. **Start Generating Colors**:
-    - Click the "start" button to begin the color generation process. Colors will be generated at the set delay interval and displayed in the list.
+    - Click the "start" button to begin the color generation process. Colors will be generated at the set speed interval and displayed in the list.
 
 2. **Stop or Reset**:
     - Use the "stop" button to pause the generation.
-    - The "reset" button will clear the generated colors and reset the delay interval to the default value of 1000 milliseconds.
+    - The "reset" button will clear the generated colors and reset the speed interval to the default value of 1000 milliseconds.
 
-3. **Set Custom Delay**:
-    - Click "set delay" to open the input field for entering a custom delay interval.
-    - Enter a value between 100 and 5000 milliseconds and click the adjacent button to apply the new delay.
+3. **Set Custom Speed**:
+    - Click "set speed" to open the input field for entering a custom speed interval.
+    - Enter a value between 100 and 5000 milliseconds and click the adjacent button to apply the new speed.
 
 4. **View and Interact with Colors**:
     - The generated colors appear in a list. Click on any color to change the background of the display area to that color.

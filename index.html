@@ -8,68 +8,69 @@
 
     <link rel="stylesheet" href="./css/styles.css">
   </head>
-  <body class="flex-row">
-    <section class="flex-col">
-      <div>
-        <h1>Color Roulette</h1>
-        <p>This program generates random colors</p>
-      </div>
-      <div>
-        <p>Click the start button to start generating color, the stop button to stop and the reset button to reset the program</p>
-        <div class="btns flex-row">
-          <button>start</button>
-          <button>stop</button>
-          <button>reset</button>
-          <button>set delay</button>
+  <body class="">
+    <header>
+      <h1>Colors Roulette</h1>
+      <p>This program generates random colors</p>
+    </header>
+    <div class="display flex-row">
+      <section class="flex-col">
+        <div>
+          <p>Click the start button to start generating color, the stop button to stop and the reset button to reset the program</p>
+          <div class="btns flex-row">
+            <button id="startBtn">start</button>
+            <button>reset</button>
+            <button id="delayBtn">set speed</button>
+          </div>
         </div>
-      </div>
-      <div id="inp-container" class="flex-col">
-        <label for="time-input">Generation Delay (100 to 5000 milliseconds):</label>
-        <input type="number" name="time-inpute" id="time-input" />
-        <button>set delay</button>
-      </div>
-      <div id="colors-container">
-        <h2>Colors Generated</h2>
-        <p>Click on the color to change the background to that color.</p>
-        <ul id="all-colors"></ul>
-      </div>
-    </section>
-    <section class="color-sect flex-col">
-      <div id="stats">
-        <p><span>Idle</span></p>
-        <br>
-        <p>Delay: <span>1000</span>ms</p>
-        <p><span>0</span> colors generated.</p>
-      </div>
-      <div id="display-portal" class="flex-col">
-        <div id="colorDetails" class="color-info">
+        <div id="inp-container" class="flex-col">
+          <label for="time-input">Generation Speed (100 to 5000 milliseconds):</label>
+          <input type="number" name="time-inpute" id="time-input" />
+          <button>set speed</button>
+        </div>
+        <div id="colors-container">
+          <h2>Colors Generated</h2>
+          <p>Click on the color to change the background to that color.</p>
+          <ul id="all-colors"></ul>
+        </div>
+      </section>
+      <section class="color-sect flex-col">
+        <div id="stats">
+          <p><span>Idle</span></p>
+          <br>
+          <p>Speed: <span>1000</span>ms</p>
+          <p><span>0</span> colors generated.</p>
+        </div>
+        <div id="display-portal" class="flex-col">
+          <div id="colorDetails" class="color-info">
+            <p>Color Name: <span>Aqua</span></p>
+            <p>Color Hex: <span>#00FFFF</span></p>
+            <p>Color RGB: <span>rgb(0, 255, 255)</span></p>
+            <p>Color RGB: <span>hsl(180, 100%, 50%)</span></p>
+          </div>
+          <button>More Info</button>
+        </div>
+      </section>
+      <section id="color-info" class="color-info flex-col hidden">
+        <p id="close-info">X</p>
+        <div id="base-color" class="flex-col">
+          <div id="base-color-box" class="color-box"></div>
+          <h2>Base Color </h2>
           <p>Color Name: <span>Aqua</span></p>
           <p>Color Hex: <span>#00FFFF</span></p>
           <p>Color RGB: <span>rgb(0, 255, 255)</span></p>
           <p>Color RGB: <span>hsl(180, 100%, 50%)</span></p>
         </div>
-        <button>More Info</button>
-      </div>
-    </section>
-    <section id="color-info" class="color-info flex-col hidden">
-      <p id="close-info">X</p>
-      <div id="base-color" class="flex-col">
-        <div id="base-color-box" class="color-box"></div>
-        <h2>Base Color </h2>
-        <p>Color Name: <span>Aqua</span></p>
-        <p>Color Hex: <span>#00FFFF</span></p>
-        <p>Color RGB: <span>rgb(0, 255, 255)</span></p>
-        <p>Color RGB: <span>hsl(180, 100%, 50%)</span></p>
-      </div>
-      <div id="comp-color" class="flex-col">
-        <h2>Complementary Color </h2>
-        <div id="comp-color-box" class="color-box"></div>
-        <p>Color Name: <span>Red</span></p>
-        <p>Color Hex: <span>#FF0000</span></p>
-        <p>Color RGB: <span>rgb(255, 0, 0)</span></p>
-        <p>Color RGB: <span>hsl(0, 100%, 50%)</span></p>
-      </div>
-    </section>
+        <div id="comp-color" class="flex-col">
+          <h2>Complementary Color </h2>
+          <div id="comp-color-box" class="color-box"></div>
+          <p>Color Name: <span>Red</span></p>
+          <p>Color Hex: <span>#FF0000</span></p>
+          <p>Color RGB: <span>rgb(255, 0, 0)</span></p>
+          <p>Color RGB: <span>hsl(0, 100%, 50%)</span></p>
+        </div>
+      </section>
+    </div>
   <script src="./js/script.js" type="module"></script>
   </body>
 </html>

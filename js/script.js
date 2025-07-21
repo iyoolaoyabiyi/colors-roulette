@@ -1,7 +1,8 @@
 import colorValues from "./colorValues.js";
 // Buttons
 const allBtns = document.querySelector(".btns");
-const delayBtn = allBtns.querySelectorAll('button')[3];
+const delayBtn = allBtns.querySelector('#delayBtn');
+const startBtn = allBtns.querySelector('#startBtn');
 // Time Input
 const inputContainer = document.getElementById('inp-container');
 const timeInp = document.getElementById('time-input');
@@ -136,10 +137,10 @@ const changeColor = async () => {
 const startGenerating = () => {
   gDelayElement.innerText = delay;
   inputContainer.style.display = 'none';
-  delayBtn.textContent = 'set delay';
+  delayBtn.textContent = 'set speed';
   gStatusElement.innerText = "Generating...";
   timeInp.value = "";
-  if(!isGenerating) {
+  if (!isGenerating) {
     colorInterval = setInterval(changeColor, delay);
     isGenerating = true;
   }
@@ -162,7 +163,8 @@ const resetChanges = () => {
   colorsListElement.innerHTML = "";
   colorsContainer.style.display = "none";
   inputContainer.style.display = 'none';
-  delayBtn.textContent = 'set delay';
+  delayBtn.textContent = 'set speed';
+  startBtn.textContent = 'start';
   gStatusElement.innerText = "Idle";
   changeElementColors("00FFFF");
 }
@@ -181,7 +183,7 @@ const showColorInfo = () => {
   compColorRgb.innerText = currentColor.compRgb;
   compColorHsl.innerText = currentColor.compHsl;
 }
-// Check delay input
+// Check speed input
 const checkInput = num => {
   if (num < 100 || num > 5000) {
     alert('Enter a number between 100 and 5000');
@@ -192,25 +194,29 @@ const checkInput = num => {
 }
 // Button Events
 allBtns.addEventListener('click', (e) => {
-  switch(e.target.textContent) {
+  const btn = e.target;
+  switch(btn.textContent) {
     case "start":
+    case 'continue':
       startGenerating();
+      btn.textContent = 'stop';
       break;
     case "stop":
-      stopGenerating();
-      break;
+        stopGenerating();
+        btn.textContent = 'continue';
+        break;
     case "reset":
       resetChanges();
       break;
-    case "set delay":
+    case "set speed":
       stopGenerating();
       inputContainer.style.display = 'flex';
-      e.target.textContent = 'cancel';
+      btn.textContent = 'cancel';
       break;
     case "cancel":
       stopGenerating();
       inputContainer.style.display = 'none';
-      e.target.textContent = 'set delay';
+      btn.textContent = 'set speed';
       timeInp.value = "";
       break;
     default:
