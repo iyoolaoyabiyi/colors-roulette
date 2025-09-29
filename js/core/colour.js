@@ -1,3 +1,32 @@
+  /**
+   * Return a new Colour with adjusted lightness.
+   * @param {number} amount - Amount to add/subtract from lightness (-100 to 100).
+   * @returns {Colour}
+   */
+  adjustLightness(amount) {
+    let newL = Math.max(0, Math.min(100, this.getLightness() + amount));
+    return new Colour(this.getHue(), this.getSaturation(), newL);
+  }
+
+  /**
+   * Return a new Colour with adjusted saturation.
+   * @param {number} amount - Amount to add/subtract from saturation (-100 to 100).
+   * @returns {Colour}
+   */
+  adjustSaturation(amount) {
+    let newS = Math.max(0, Math.min(100, this.getSaturation() + amount));
+    return new Colour(this.getHue(), newS, this.getLightness());
+  }
+
+  /**
+   * Return a new Colour with rotated hue.
+   * @param {number} degrees - Degrees to rotate hue (can be negative).
+   * @returns {Colour}
+   */
+  rotateHue(degrees) {
+    let newH = (this.getHue() + degrees + 360) % 360;
+    return new Colour(newH, this.getSaturation(), this.getLightness());
+  }
 class Colour {
   
   //declaring private fields
@@ -6,7 +35,7 @@ class Colour {
   
   //private helper function to validate inputs
   
-  static #validatorUtil(value, min, max, name){
+   validatorUtil(value, min, max, name){
     
     //Check if type is number
     
@@ -25,9 +54,9 @@ class Colour {
     
     //constructor argument validation 
     
-    this.#validatorUtil(h, 0, 360, 'Hue')
-    this.#validatorUtil(s, 0, 100, 'Saturation')
-    this.#validatorUtil(l, 0, 100, 'Lightness')
+    this.validatorUtil(h, 0, 360, 'Hue')
+    // this.validatorUtil(s, 0, 100, 'Saturation')
+    // this.validatorUtil(l, 0, 100, 'Lightness')
     
     //Initializatiin of private variable
     
@@ -47,12 +76,12 @@ class Colour {
   static fromRGB(r,g,b){
     
     // Validate inputs
-    this.#validatorUtil(r, 0, 255, 'RGB-red')
-    this.#validatorUtil(g, 0, 255, 'RGB-green')
-    this.#validatorUtil(b, 0, 255, 'RGB-blue')
-    
-    
+    this.validatorUtil(r, 0, 255, 'RGB-red')
+    this.validatorUtil(g, 0, 255, 'RGB-green')
+    this.validatorUtil(b, 0, 255, 'RGB-blue')
+
     // 1. Normalize R, G, B values from [0, 255] to [0, 1]
+
     const normR = r / 255;
     const normG = g / 255;
     const normB = b / 255;
@@ -113,21 +142,21 @@ class Colour {
     if (h === 360 && (s !== 0 || l !== 0)) {
         h = 0;
     }
-    
+
     // Return a new Colour object (as implied by the original code)
     return new Colour(h, s, l);
   }
-  
+
   static fromHEX(HEXstring){
-    
+
     //Validate Hex to be a string
     if(typeof HEXstring !== "string"){throw Error ("HEX value mustbe a string")}
-    
+
     // remove # if present
     let hex = HEXstring.startsWith("#") ? HEXstring.slice(1): HEXstring
-    
+
     // check length of HEX == 6
-    
+     
     if(hex.length !== 6){throw Error ("HEX value must be 6 characters long (without #)")}
     
     //Check for invalid characters 
