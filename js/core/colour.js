@@ -1,32 +1,4 @@
-  /**
-   * Return a new Colour with adjusted lightness.
-   * @param {number} amount - Amount to add/subtract from lightness (-100 to 100).
-   * @returns {Colour}
-   */
-  adjustLightness(amount) {
-    let newL = Math.max(0, Math.min(100, this.getLightness() + amount));
-    return new Colour(this.getHue(), this.getSaturation(), newL);
-  }
 
-  /**
-   * Return a new Colour with adjusted saturation.
-   * @param {number} amount - Amount to add/subtract from saturation (-100 to 100).
-   * @returns {Colour}
-   */
-  adjustSaturation(amount) {
-    let newS = Math.max(0, Math.min(100, this.getSaturation() + amount));
-    return new Colour(this.getHue(), newS, this.getLightness());
-  }
-
-  /**
-   * Return a new Colour with rotated hue.
-   * @param {number} degrees - Degrees to rotate hue (can be negative).
-   * @returns {Colour}
-   */
-  rotateHue(degrees) {
-    let newH = (this.getHue() + degrees + 360) % 360;
-    return new Colour(newH, this.getSaturation(), this.getLightness());
-  }
 class Colour {
   
   //declaring private fields
@@ -238,6 +210,36 @@ class Colour {
         g: Math.round(g * 255),
         b: Math.round(b * 255)
     };
+  }
+
+    /**
+   * Return a new Colour with adjusted lightness.
+   * @param {number} amount - Amount to add/subtract from lightness (-100 to 100).
+   * @returns {Colour}
+   */
+  adjustLightness(amount) {
+    let newL = Math.max(0, Math.min(100, this.getLightness() + amount));
+    return new Colour(this.getHue(), this.getSaturation(), newL);
+  }
+
+  /**
+   * Return a new Colour with adjusted saturation.
+   * @param {number} amount - Amount to add/subtract from saturation (-100 to 100).
+   * @returns {Colour}
+   */
+  adjustSaturation(amount) {
+    let newS = Math.max(0, Math.min(100, this.getSaturation() + amount));
+    return new Colour(this.getHue(), newS, this.getLightness());
+  }
+
+  /**
+   * Return a new Colour with rotated hue.
+   * @param {number} degrees - Degrees to rotate hue (can be negative).
+   * @returns {Colour}
+   */
+  rotateHue(degrees) {
+    let newH = (this.getHue() + degrees + 360) % 360;
+    return new Colour(newH, this.getSaturation(), this.getLightness());
   }
 }
 
