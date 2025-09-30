@@ -1,4 +1,5 @@
 import Colour from "./colour.js";
+import ColourHarmony from "./colourHarmony.js";
 
 /**
  * Class to manage a palette of colors, including lock/unlock and random generation.
@@ -97,3 +98,70 @@ class Palette {
 }
 
 export default Palette;
+
+console.log("=== Testing Colour Class ===");
+const c1 = new Colour(200, 80, 60);
+console.log("Original Colour (HSL):", c1.toHSL());
+console.log("To HEX:", c1.toHex());
+console.log("To RGB:", c1.toRGB());
+
+const lighter = c1.adjustLightness(20);
+console.log("Lighter Colour:", lighter.toHSL());
+
+const moreSaturated = c1.adjustSaturation(10);
+console.log("More Saturated:", moreSaturated.toHSL());
+
+const rotated = c1.rotateHue(120);
+console.log("Hue Rotated +120°:", rotated.toHSL());
+
+console.log("\n=== Testing Palette Class ===");
+const palette = new Palette(5);
+console.log("Initial Palette HEX:", palette.exportHEX());
+
+palette.lock(2);
+palette.generate();
+console.log(
+  "Palette after locking index 2 and regenerating:",
+  palette.exportHEX()
+);
+
+palette.unlock(2);
+palette.generate();
+console.log(
+  "Palette after unlocking index 2 and regenerating:",
+  palette.exportHEX()
+);
+
+const hexArray = ["#FF5733", "#33FF57", "#3357FF", "#F0F0F0", "#222222"];
+palette.importHEX(hexArray);
+console.log("Palette after importing HEX array:", palette.exportHEX());
+
+console.log("\n=== Testing Colour Static Methods ===");
+const fromHex = Colour.fromHEX("#FFAA00");
+console.log("Colour from HEX #FFAA00:", fromHex.toHSL());
+
+const fromRgb = Colour.fromRGB(10, 200, 100);
+console.log("Colour from RGB(10,200,100):", fromRgb.toHSL());
+
+console.log("\n=== Testing ColourHarmony Class ===");
+const harmony = new ColourHarmony(c1);
+console.log(
+  "Complementary:",
+  harmony.complementary().map((c) => c.toHex())
+);
+console.log(
+  "Analogous:",
+  harmony.analogous().map((c) => c.toHex())
+);
+console.log(
+  "Triadic:",
+  harmony.triadic().map((c) => c.toHex())
+);
+console.log(
+  "Tetradic:",
+  harmony.tetradic().map((c) => c.toHex())
+);
+console.log(
+  "Monochromatic:",
+  harmony.monochromatic().map((c) => c.toHex())
+);
