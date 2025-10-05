@@ -1,5 +1,4 @@
 class Colour {
-  // Declaring private fields
   #h;
   #s;
   #l;
@@ -31,7 +30,6 @@ class Colour {
     this.#l = l;
   }
 
-  // Getter methods for private variables
   getHue() {
     return this.#h;
   }
@@ -42,13 +40,11 @@ class Colour {
     return this.#l;
   }
 
-  // Static methods for creating new Colour instances from RGB or HEX
   static fromRGB(r, g, b) {
     Colour.#validatorUtil(r, 0, 255, "RGB-red");
     Colour.#validatorUtil(g, 0, 255, "RGB-green");
     Colour.#validatorUtil(b, 0, 255, "RGB-blue");
 
-    // ...existing code...
     const normR = r / 255;
     const normG = g / 255;
     const normB = b / 255;
@@ -79,7 +75,7 @@ class Colour {
     h = Math.round(h * 360);
     s = Math.round(s * 100);
     l = Math.round(l * 100);
-    if (h === 360 && (s !== 0 || l !== 0)) h = 0;
+    if (h > 360 && (s !== 0 || l !== 0)) h = h % 360;
     return new Colour(h, s, l);
   }
 
@@ -87,17 +83,32 @@ class Colour {
     if (typeof HEXstring !== "string")
       throw Error("HEX value must be a string");
     let hex = HEXstring.startsWith("#") ? HEXstring.slice(1) : HEXstring;
-    if (hex.length !== 6)
-      throw Error("HEX value must be 6 characters long (without #)");
-    if (!/^[0-9a-fA-F]{6}$/.test(hex))
+    
+    // Validate hex length (3, 4, 6, or 8 digits)
+    if (![3, 4, 6, 8].includes(hex.length))
+      throw Error("HEX value must be 3, 4, 6, or 8 characters long (without #)");
+    
+    // Validate hex characters
+    if (!/^[0-9a-fA-F]+$/.test(hex))
       throw Error("HEX value contains invalid characters");
+    
+    // Expand 3-digit and 4-digit formats
+    if (hex.length === 3) {
+      // #RGB -> #RRGGBB
+      hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+    } else if (hex.length === 4) {
+      // #RGBA -> #RRGGBBAA
+      hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3];
+    }
+    
+    // Extract RGB (ignore alpha channel if present)
     const r = parseInt(hex.substring(0, 2), 16);
     const g = parseInt(hex.substring(2, 4), 16);
     const b = parseInt(hex.substring(4, 6), 16);
+    
     return this.fromRGB(r, g, b);
   }
 
-  // Conversion Methods
   toHSL() {
     return { h: this.#h, s: this.#s, l: this.#l };
   }
@@ -173,5 +184,4 @@ class Colour {
   }
 }
 
-//Finally export color class
 export default Colour;

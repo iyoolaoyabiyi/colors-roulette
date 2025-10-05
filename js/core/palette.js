@@ -2,7 +2,7 @@ import Colour from "./colour.js";
 import ColourHarmony from "./colourHarmony.js";
 
 /**
- * Class to manage a palette of colors, including lock/unlock and random generation.
+ * Class to manage a palette of colours, including lock/unlock and random generation.
  */
 class Palette {
   #colours = [];
@@ -10,15 +10,15 @@ class Palette {
 
   /**
    * Create a Palette instance.
-   * @param {number} size - Number of colors in the palette (default 5).
+   * @param {number} size - Number of colours in the palette (default 5).
    */
   constructor(size = 5) {
     this.generate(size);
   }
 
   /**
-   * Generate random colors for the palette, only for unlocked positions.
-   * @param {number} size - Number of colors to generate (default: current palette size).
+   * Generate random colours for the palette, only for unlocked positions.
+   * @param {number} size - Number of colours to generate (default: current palette size).
    */
   generate(size = this.#colours.length) {
     if (this.#colours.length === 0) {
@@ -33,7 +33,7 @@ class Palette {
   }
 
   /**
-   * Lock a color at a given index.
+   * Lock a colour at a given index.
    * @param {number} index
    */
   lock(index) {
@@ -43,7 +43,7 @@ class Palette {
   }
 
   /**
-   * Unlock a color at a given index.
+   * Unlock a colour at a given index.
    * @param {number} index
    */
   unlock(index) {
@@ -99,7 +99,8 @@ class Palette {
 
 export default Palette;
 
-console.log("=== Testing Colour Class ===");
+if (typeof process !== 'undefined' && process.env?.NODE_ENV !== 'production') {
+  console.log("=== Testing Colour Class ===");
 const c1 = new Colour(200, 80, 60);
 console.log("Original Colour (HSL):", c1.toHSL());
 console.log("To HEX:", c1.toHex());
@@ -161,7 +162,8 @@ console.log(
   "Tetradic:",
   harmony.tetradic().map((c) => c.toHex())
 );
-console.log(
-  "Monochromatic:",
-  harmony.monochromatic().map((c) => c.toHex())
-);
+  console.log(
+    "Monochromatic:",
+    harmony.monochromatic().map((c) => c.toHex())
+  );
+}

@@ -1,13 +1,12 @@
-// imports from colour class
 import Colour from "./colour.js";
 
 /**
- * Class for generating color harmonies from a base Colour instance.
+ * Class for generating colour harmonies from a base Colour instance.
  */
-class ColorHarmony {
+class ColourHarmony {
   /**
-   * Create a ColorHarmony instance.
-   * @param {Colour} baseColour - The base color to generate harmonies from.
+   * Create a ColourHarmony instance.
+   * @param {Colour} baseColour - The base colour to generate harmonies from.
    * @throws {Error} If baseColour is not a Colour instance.
    */
   constructor(baseColour) {
@@ -18,8 +17,22 @@ class ColorHarmony {
   }
 
   /**
-   * Generate the complementary color palette.
-   * @returns {Colour[]} Array with the base color and its complementary color.
+   * Private static helper to validate angle values.
+   * @param {number} angle - The angle to validate.
+   * @param {string} methodName - Name of the method (for error messages).
+   */
+  static #validateAngle(angle, methodName) {
+    if (typeof angle !== "number") {
+      throw Error(`${methodName}: angle must be a number`);
+    }
+    if (!isFinite(angle)) {
+      throw Error(`${methodName}: angle must be a finite number`);
+    }
+  }
+
+  /**
+   * Generate the complementary colour palette.
+   * @returns {Colour[]} Array with the base colour and its complementary colour.
    */
   complementary() {
     const { h, s, l } = this.baseColour.toHSL();
@@ -28,11 +41,12 @@ class ColorHarmony {
   }
 
   /**
-   * Generate an analogous color palette.
+   * Generate an analogous colour palette.
    * @param {number} angle - The angle in degrees to offset from the base hue (default 30).
-   * @returns {Colour[]} Array with the base color and two analogous colors.
+   * @returns {Colour[]} Array with the base colour and two analogous colours.
    */
   analogous(angle = 30) {
+    ColourHarmony.#validateAngle(angle, "analogous");
     const { h, s, l } = this.baseColour.toHSL();
     const hue1 = (h + angle) % 360;
     const hue2 = (h - angle + 360) % 360;
@@ -40,11 +54,12 @@ class ColorHarmony {
   }
 
   /**
-   * Generate a triadic color palette.
+   * Generate a triadic colour palette.
    * @param {number} angle - The angle in degrees to offset from the base hue (default 120).
-   * @returns {Colour[]} Array with the base color and two triadic colors.
+   * @returns {Colour[]} Array with the base colour and two triadic colours.
    */
   triadic(angle = 120) {
+    ColourHarmony.#validateAngle(angle, "triadic");
     const { h, s, l } = this.baseColour.toHSL();
     const hue1 = (h + angle) % 360;
     const hue2 = (h - angle + 360) % 360;
@@ -52,8 +67,8 @@ class ColorHarmony {
   }
 
   /**
-   * Generate a tetradic (rectangle) color palette.
-   * @returns {Colour[]} Array with the base color and three tetradic colors.
+   * Generate a tetradic (rectangle) colour palette.
+   * @returns {Colour[]} Array with the base colour and three tetradic colours.
    */
   tetradic() {
     const { h, s, l } = this.baseColour.toHSL();
@@ -69,11 +84,12 @@ class ColorHarmony {
   }
 
   /**
-   * Generate a split complementary color palette.
+   * Generate a split complementary colour palette.
    * @param {number} angle - The angle in degrees to offset from the direct complement (default 30).
-   * @returns {Colour[]} Array with the base color and two split complementary colors.
+   * @returns {Colour[]} Array with the base colour and two split complementary colours.
    */
   splitComplementary(angle = 30) {
+    ColourHarmony.#validateAngle(angle, "splitComplementary");
     const { h, s, l } = this.baseColour.toHSL();
     const hue1 = (h + angle + 180) % 360;
     const hue2 = (h - angle + 180) % 360;
@@ -82,10 +98,10 @@ class ColorHarmony {
 
   /**
    * Generate a monochromatic palette by varying lightness and optionally saturation.
-   * @param {number} steps - Number of colors in the palette (default 5).
+   * @param {number} steps - Number of colours in the palette (default 5).
    * @param {number[]} lightnessRange - [min, max] lightness values (default [20, 80]).
    * @param {number[]} [saturationRange] - [min, max] saturation values (optional).
-   * @returns {Colour[]} Array of monochromatic colors including the base color.
+   * @returns {Colour[]} Array of monochromatic colours including the base colour.
    */
   monochromatic(steps = 5, lightnessRange = [20, 80], saturationRange) {
     const base = this.baseColour;
@@ -103,7 +119,6 @@ class ColorHarmony {
       const sat = minS + ((maxS - minS) * i) / (steps - 1);
       palette.push(new Colour(h, sat, l));
     }
-    // Optionally, ensure the base color is included
     if (
       !palette.some(
         (col) =>
@@ -118,7 +133,7 @@ class ColorHarmony {
   }
 
   /**
-   * Generate all harmony palettes for the base color.
+   * Generate all harmony palettes for the base colour.
    * @returns {Object} An object with all harmony palettes as arrays of Colour objects.
    */
   getAllHarmonies() {
@@ -133,4 +148,4 @@ class ColorHarmony {
   }
 }
 
-export default ColorHarmony;
+export default ColourHarmony;
