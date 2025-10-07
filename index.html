@@ -1,76 +1,843 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Palette Generator</title>
 
-    <title>Color Roulette</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'mono': ['JetBrains Mono', 'Consolas', 'Monaco', 'monospace'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-in-out',
+                        'slide-up': 'slideUp 0.3s ease-out',
+                    }
+                }
+            }
+        }
+    </script>
 
-    <link rel="stylesheet" href="./css/styles.css">
-  </head>
-  <body class="">
-    <header>
-      <h1>Colors Roulette</h1>
-      <p>This program generates random colors</p>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        .color-swatch {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .color-swatch:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        .lock-button {
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .color-swatch:hover .lock-button {
+            opacity: 1;
+        }
+        .slider {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: #e5e7eb;
+            outline: none;
+        }
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+        }
+        .slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            border: none;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .tooltip {
+            position: relative;
+        }
+        .tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            z-index: 1000;
+        }
+        .tooltip:hover::after {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-mono min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 py-6">
+            <div class="text-center">
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">🎨 Color Palette Generator</h1>
+                <p class="text-gray-600">Press the spacebar to generate color palettes!</p>
+            </div>
+        </div>
     </header>
-    <div class="display flex-row">
-      <section class="flex-col">
-        <div>
-          <p>Click the start button to start generating color, the stop button to stop and the reset button to reset the program</p>
-          <div class="btns flex-row">
-            <button id="startBtn">start</button>
-            <button>reset</button>
-            <button id="delayBtn">set speed</button>
-          </div>
+
+    <!-- Toolbar -->
+    <div class="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <button id="generateBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                        Generate Palette
+                    </button>
+                    <span class="text-sm text-gray-600">or press <kbd class="px-2 py-1 bg-gray-200 rounded text-xs font-semibold">Space</kbd></span>
+                </div>
+
+                <div class="flex items-center space-x-1">
+                    <button id="viewBtn" class="tooltip p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors" data-tooltip="View Options">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                    </button>
+                    <button id="exportBtn" class="tooltip p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors" data-tooltip="Export Palette">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-4-4m4 4l4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </button>
+                    <button id="settingsBtn" class="tooltip p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors" data-tooltip="Settings">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"></path>
+                        </svg>
+                    </button>
+                    <button id="shuffleBtn" class="tooltip p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors" data-tooltip="Shuffle All">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                    </button>
+                    <button id="heartBtn" class="tooltip p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors" data-tooltip="Save Palette">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
         </div>
-        <div id="inp-container" class="flex-col">
-          <label for="time-input">Generation Speed (100 to 5000 milliseconds):</label>
-          <input type="number" name="time-inpute" id="time-input" />
-          <button>set speed</button>
-        </div>
-        <div id="colors-container">
-          <h2>Colors Generated</h2>
-          <p>Click on the color to change the background to that color.</p>
-          <ul id="all-colors"></ul>
-        </div>
-      </section>
-      <section class="color-sect flex-col">
-        <div id="stats">
-          <p><span>Idle</span></p>
-          <br>
-          <p>Speed: <span>1000</span>ms</p>
-          <p><span>0</span> colors generated.</p>
-        </div>
-        <div id="display-portal" class="flex-col">
-          <div id="colorDetails" class="color-info">
-            <p>Color Name: <span>Aqua</span></p>
-            <p>Color Hex: <span>#00FFFF</span></p>
-            <p>Color RGB: <span>rgb(0, 255, 255)</span></p>
-            <p>Color RGB: <span>hsl(180, 100%, 50%)</span></p>
-          </div>
-          <button>More Info</button>
-        </div>
-      </section>
-      <section id="color-info" class="color-info flex-col hidden">
-        <p id="close-info">X</p>
-        <div id="base-color" class="flex-col">
-          <div id="base-color-box" class="color-box"></div>
-          <h2>Base Color </h2>
-          <p>Color Name: <span>Aqua</span></p>
-          <p>Color Hex: <span>#00FFFF</span></p>
-          <p>Color RGB: <span>rgb(0, 255, 255)</span></p>
-          <p>Color RGB: <span>hsl(180, 100%, 50%)</span></p>
-        </div>
-        <div id="comp-color" class="flex-col">
-          <h2>Complementary Color </h2>
-          <div id="comp-color-box" class="color-box"></div>
-          <p>Color Name: <span>Red</span></p>
-          <p>Color Hex: <span>#FF0000</span></p>
-          <p>Color RGB: <span>rgb(255, 0, 0)</span></p>
-          <p>Color RGB: <span>hsl(0, 100%, 50%)</span></p>
-        </div>
-      </section>
     </div>
-  <script src="./js/script.js" type="module"></script>
-  </body>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Color Palette Display -->
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">
+            <!-- Color Swatches -->
+            <div class="lg:col-span-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <!-- Color Swatch 1 -->
+                    <div class="color-swatch from-purple-900 to-purple-700 h-40 rounded-xl relative overflow-hidden group cursor-pointer" data-index="0">
+                        <button class="lock-button absolute top-2 right-2 w-8 h-8 bg-black bg-opacity-50 text-white rounded-full flex items-center justify-center hover:bg-opacity-70 transition-all">
+                            <svg class="w-4 h-4 lock-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                            </svg>
+                        </button>
+                        <button class="copy-button absolute top-2 left-2 w-8 h-8 bg-black bg-opacity-50 text-white rounded-full flex items-center justify-center hover:bg-opacity-70 transition-all opacity-0 group-hover:opacity-100">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                            </svg>
+                        </button>
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div class="absolute bottom-3 left-3 right-3">
+                                <div class="hex-code text-white font-bold text-lg mb-1"></div>
+                                <div class="color-name text-white/90 text-sm"></div>
+                            </div>
+                        </div>
+                        <div class="absolute inset-0 rounded-xl ring-4 ring-blue-500 ring-opacity-0 transition-all duration-300 selection-ring"></div>
+                    </div>
+
+                    <!-- Color Swatch 2 -->
+                    <div class="color-swatch from-purple-800 to-purple-600 h-40 rounded-xl relative overflow-hidden group cursor-pointer" data-index="1">
+                        <button class="lock-button absolute top-2 right-2 w-8 h-8 bg-black bg-opacity-50 text-white rounded-full flex items-center justify-center hover:bg-opacity-70 transition-all">
+                            <svg class="w-4 h-4 lock-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                            </svg>
+                        </button>
+                        <button class="copy-button absolute top-2 left-2 w-8 h-8 bg-black bg-opacity-50 text-white rounded-full flex items-center justify-center hover:bg-opacity-70 transition-all opacity-0 group-hover:opacity-100">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                            </svg>
+                        </button>
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div class="absolute bottom-3 left-3 right-3">
+                                <div class="hex-code text-white font-bold text-lg mb-1"></div>
+                                <div class="color-name text-white/90 text-sm"></div>
+                            </div>
+                        </div>
+                        <div class="absolute inset-0 rounded-xl ring-4 ring-blue-500 ring-opacity-0 transition-all duration-300 selection-ring"></div>
+                    </div>
+
+                    <!-- Color Swatch 3 -->
+                    <div class="color-swatch from-purple-700 to-purple-500 h-40 rounded-xl relative overflow-hidden group cursor-pointer" data-index="2">
+                        <button class="lock-button absolute top-2 right-2 w-8 h-8 bg-black bg-opacity-50 text-white rounded-full flex items-center justify-center hover:bg-opacity-70 transition-all">
+                            <svg class="w-4 h-4 lock-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                            </svg>
+                        </button>
+                        <button class="copy-button absolute top-2 left-2 w-8 h-8 bg-black bg-opacity-50 text-white rounded-full flex items-center justify-center hover:bg-opacity-70 transition-all opacity-0 group-hover:opacity-100">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                            </svg>
+                        </button>
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div class="absolute bottom-3 left-3 right-3">
+                                <div class="hex-code text-white font-bold text-lg mb-1"></div>
+                                <div class="color-name text-white/90 text-sm"></div>
+                            </div>
+                        </div>
+                        <div class="absolute inset-0 rounded-xl ring-4 ring-blue-500 ring-opacity-0 transition-all duration-300 selection-ring"></div>
+                    </div>
+
+                    <!-- Color Swatch 4 -->
+                    <div class="color-swatch from-purple-600 to-purple-400 h-40 rounded-xl relative overflow-hidden group cursor-pointer" data-index="3">
+                        <button class="lock-button absolute top-2 right-2 w-8 h-8 bg-black bg-opacity-50 text-white rounded-full flex items-center justify-center hover:bg-opacity-70 transition-all">
+                            <svg class="w-4 h-4 lock-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                            </svg>
+                        </button>
+                        <button class="copy-button absolute top-2 left-2 w-8 h-8 bg-black bg-opacity-50 text-white rounded-full flex items-center justify-center hover:bg-opacity-70 transition-all opacity-0 group-hover:opacity-100">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                            </svg>
+                        </button>
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div class="absolute bottom-3 left-3 right-3">
+                                <div class="hex-code text-white font-bold text-lg mb-1"></div>
+                                <div class="color-name text-white/90 text-sm"></div>
+                            </div>
+                        </div>
+                        <div class="absolute inset-0 rounded-xl ring-4 ring-blue-500 ring-opacity-0 transition-all duration-300 selection-ring"></div>
+                    </div>
+
+                    <!-- Color Swatch 5 -->
+                    <div class="color-swatch from-purple-500 to-pink-400 h-40 rounded-xl relative overflow-hidden group cursor-pointer" data-index="4">
+                        <button class="lock-button absolute top-2 right-2 w-8 h-8 bg-black bg-opacity-50 text-white rounded-full flex items-center justify-center hover:bg-opacity-70 transition-all">
+                            <svg class="w-4 h-4 lock-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                            </svg>
+                        </button>
+                        <button class="copy-button absolute top-2 left-2 w-8 h-8 bg-black bg-opacity-50 text-white rounded-full flex items-center justify-center hover:bg-opacity-70 transition-all opacity-0 group-hover:opacity-100">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                            </svg>
+                        </button>
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div class="absolute bottom-3 left-3 right-3">
+                                <div class="hex-code text-white font-bold text-lg mb-1"></div>
+                                <div class="color-name text-white/90 text-sm"></div>
+                            </div>
+                        </div>
+                        <div class="absolute inset-0 rounded-xl ring-4 ring-blue-500 ring-opacity-0 transition-all duration-300 selection-ring"></div>
+                    </div>
+                </div>
+
+                <!-- Color Adjustments (shown when a color is selected) -->
+                <div class="adjustments-panel hidden mt-6 p-6 bg-white rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Adjust Color</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Hue Slider -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Hue: <span class="hue-value font-mono">180</span>°
+                            </label>
+                            <input type="range" class="slider hue-slider w-full" min="0" max="360" value="180">
+                        </div>
+
+                        <!-- Saturation Slider -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Saturation: <span class="saturation-value font-mono">50</span>%
+                            </label>
+                            <input type="range" class="slider saturation-slider w-full" min="0" max="100" value="50">
+                        </div>
+
+                        <!-- Lightness Slider -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Lightness: <span class="lightness-value font-mono">50</span>%
+                            </label>
+                            <input type="range" class="slider lightness-slider w-full" min="0" max="100" value="50">
+                        </div>
+                    </div>
+
+                    <!-- Contrast Ratio Display -->
+                    <div class="mt-4 p-3 bg-gray-50 rounded-lg">
+                        <div class="text-sm text-gray-600">
+                            Contrast Ratio: <span class="contrast-ratio font-semibold text-gray-800">4.5:1</span>
+                            <span class="accessibility-rating ml-2 px-2 py-1 text-xs rounded"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info Panel -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sticky top-24">
+                    <h3 class="font-semibold text-gray-800 mb-4">Color Information</h3>
+
+                    <!-- Selected Color Preview -->
+                    <div class="mb-4">
+                        <div class="w-full h-16 rounded-lg mb-2 color-preview"></div>
+                        <div class="text-xs text-gray-600">Selected Color</div>
+                    </div>
+
+                    <!-- Color Details -->
+                    <div class="space-y-3">
+                        <div>
+                            <div class="text-xs text-gray-500 uppercase tracking-wide">HEX</div>
+                            <div class="font-mono text-sm text-gray-800 hex-display cursor-pointer hover:text-blue-600 transition-colors">#231942</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-500 uppercase tracking-wide">RGB</div>
+                            <div class="font-mono text-sm text-gray-800 rgb-display">rgb(35, 25, 66)</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-500 uppercase tracking-wide">HSL</div>
+                            <div class="font-mono text-sm text-gray-800 hsl-display">hsl(260, 45%, 18%)</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-500 uppercase tracking-wide">Name</div>
+                            <div class="font-medium text-sm text-gray-800 name-display">Russian violet</div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="mt-6 pt-4 border-t border-gray-200">
+                        <div class="space-y-2">
+                            <button class="harmony-btn w-full px-3 py-2 text-sm bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors" data-harmony="complementary">
+                                Complementary
+                            </button>
+                            <button class="harmony-btn w-full px-3 py-2 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors" data-harmony="analogous">
+                                Analogous
+                            </button>
+                            <button class="harmony-btn w-full px-3 py-2 text-sm bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition-colors" data-harmony="triadic">
+                                Triadic
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Harmony Generation -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Generate Harmony Palettes</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <button class="harmony-generate-btn px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium" data-harmony="complementary">
+                    Complementary
+                </button>
+                <button class="harmony-generate-btn px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium" data-harmony="analogous">
+                    Analogous
+                </button>
+                <button class="harmony-generate-btn px-4 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium" data-harmony="triadic">
+                    Triadic
+                </button>
+                <button class="harmony-generate-btn px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium" data-harmony="tetradic">
+                    Tetradic
+                </button>
+            </div>
+        </div>
+
+        <!-- Export/Import Section -->
+        <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Export Palette</h3>
+                <div class="space-y-3">
+                    <button id="exportHexBtn" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        Export as HEX Codes
+                    </button>
+                    <button id="exportJsonBtn" class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                        Export as JSON
+                    </button>
+                    <button id="exportUrlBtn" class="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                        Export as URL
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Import Palette</h3>
+                <div class="space-y-3">
+                    <textarea id="importText" placeholder="Paste HEX codes separated by new lines or commas" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                    <button id="importBtn" class="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                        Import Palette
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-16">
+        <div class="max-w-7xl mx-auto px-4 py-8">
+            <div class="text-center text-gray-600">
+                <p>Built with advanced color theory algorithms • Press spacebar to generate palettes</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Notifications -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg transform translate-y-full transition-transform duration-300 z-50">
+        <div class="flex items-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span class="toast-message">Copied to clipboard!</span>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script type="module">
+        import Colour from './js/core/colour.js';
+        import ColourHarmony from './js/core/colourHarmony.js';
+        import Palette from './js/core/palette.js';
+
+        // Application state
+        let currentPalette = new Palette(5);
+        let currentSelectedIndex = 0;
+        let lockedColors = [false, false, false, false, false];
+
+        // DOM Elements
+        const generateBtn = document.getElementById('generateBtn');
+        const exportBtn = document.getElementById('exportBtn');
+        const viewBtn = document.getElementById('viewBtn');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const shuffleBtn = document.getElementById('shuffleBtn');
+        const heartBtn = document.getElementById('heartBtn');
+
+        // Color swatch containers
+        const colorSwatches = document.querySelectorAll('.color-swatch');
+
+        // Info panel elements
+        const colorPreview = document.querySelector('.color-preview');
+        const hexDisplay = document.querySelector('.hex-display');
+        const rgbDisplay = document.querySelector('.rgb-display');
+        const hslDisplay = document.querySelector('.hsl-display');
+        const nameDisplay = document.querySelector('.name-display');
+
+        // Adjustment sliders
+        const hueSlider = document.querySelector('.hue-slider');
+        const saturationSlider = document.querySelector('.saturation-slider');
+        const lightnessSlider = document.querySelector('.lightness-slider');
+        const hueValue = document.querySelector('.hue-value');
+        const saturationValue = document.querySelector('.saturation-value');
+        const lightnessValue = document.querySelector('.lightness-value');
+        const contrastRatio = document.querySelector('.contrast-ratio');
+        const accessibilityRating = document.querySelector('.accessibility-rating');
+
+        // Panels
+        const adjustmentsPanel = document.querySelector('.adjustments-panel');
+
+        // Harmony buttons
+        const harmonyBtns = document.querySelectorAll('.harmony-btn');
+        const harmonyGenerateBtns = document.querySelectorAll('.harmony-generate-btn');
+
+        // Export/Import
+        const exportHexBtn = document.getElementById('exportHexBtn');
+        const exportJsonBtn = document.getElementById('exportJsonBtn');
+        const exportUrlBtn = document.getElementById('exportUrlBtn');
+        const importText = document.getElementById('importText');
+        const importBtn = document.getElementById('importBtn');
+
+        // Toast
+        const toast = document.getElementById('toast');
+        const toastMessage = document.querySelector('.toast-message');
+
+        // Color name database
+        const colorNames = {
+            '#231942': 'Russian violet',
+            '#5E548E': 'Ultra Violet',
+            '#9F86C0': 'African Violet',
+            '#BE95C4': 'Lilac',
+            '#E0B1CB': 'Pink lavender'
+        };
+
+        // Initialize the application
+        function init() {
+            generateNewPalette();
+            setupEventListeners();
+        }
+
+        // Generate and display a new palette
+        function generateNewPalette() {
+            currentPalette.generate();
+            displayPalette();
+        }
+
+        // Display the current palette
+        function displayPalette() {
+            const colors = currentPalette.getColours();
+
+            colors.forEach((color, index) => {
+                const hex = color.toHex();
+                const rgb = color.toRGB();
+                const hsl = color.toHSL();
+                const name = getColorName(hex) || 'Custom Color';
+
+                const swatch = colorSwatches[index];
+                const hexCode = swatch.querySelector('.hex-code');
+                const colorName = swatch.querySelector('.color-name');
+                const lockIcon = swatch.querySelector('.lock-icon');
+
+                // Update swatch appearance
+                swatch.style.backgroundColor = hex;
+                hexCode.textContent = hex;
+                colorName.textContent = name;
+
+                // Update lock icon
+                if (lockedColors[index]) {
+                    lockIcon.classList.add('text-yellow-400');
+                    lockIcon.classList.remove('text-white');
+                } else {
+                    lockIcon.classList.add('text-white');
+                    lockIcon.classList.remove('text-yellow-400');
+                }
+
+                // Set up click handlers
+                swatch.onclick = () => selectColor(index);
+                swatch.querySelector('.copy-button').onclick = (e) => {
+                    e.stopPropagation();
+                    copyToClipboard(hex);
+                };
+                swatch.querySelector('.lock-button').onclick = (e) => {
+                    e.stopPropagation();
+                    toggleLock(index);
+                };
+            });
+
+            // Update locked status in palette
+            colors.forEach((color, index) => {
+                if (lockedColors[index]) {
+                    currentPalette.lock(index);
+                } else {
+                    currentPalette.unlock(index);
+                }
+            });
+
+            // Select first color by default
+            if (colors.length > 0) {
+                selectColor(0);
+            }
+        }
+
+        // Select a color and update the info panel
+        function selectColor(index) {
+            currentSelectedIndex = index;
+            const color = currentPalette.getColours()[index];
+            const hex = color.toHex();
+            const rgb = color.toRGB();
+            const hsl = color.toHSL();
+            const name = getColorName(hex) || 'Custom Color';
+
+            // Update info panel
+            colorPreview.style.backgroundColor = hex;
+            hexDisplay.textContent = hex;
+            rgbDisplay.textContent = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+            hslDisplay.textContent = `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`;
+            nameDisplay.textContent = name;
+
+            // Update selection rings
+            colorSwatches.forEach((swatch, i) => {
+                const ring = swatch.querySelector('.selection-ring');
+                if (i === index) {
+                    ring.classList.remove('ring-opacity-0');
+                    ring.classList.add('ring-opacity-100');
+                } else {
+                    ring.classList.remove('ring-opacity-100');
+                    ring.classList.add('ring-opacity-0');
+                }
+            });
+
+            // Show adjustments panel
+            adjustmentsPanel.classList.remove('hidden');
+
+            // Update sliders
+            hueSlider.value = hsl.h;
+            saturationSlider.value = hsl.s;
+            lightnessSlider.value = hsl.l;
+            hueValue.textContent = hsl.h;
+            saturationValue.textContent = hsl.s;
+            lightnessValue.textContent = hsl.l;
+
+            // Update contrast ratio
+            updateContrastRatio();
+
+            // Make copy button copy hex value
+            hexDisplay.onclick = () => copyToClipboard(hex);
+        }
+
+        // Toggle lock status for a color
+        function toggleLock(index) {
+            lockedColors[index] = !lockedColors[index];
+            displayPalette(); // Refresh display to show lock status
+        }
+
+        // Get color name from hex
+        function getColorName(hex) {
+            return colorNames[hex.toUpperCase()] || null;
+        }
+
+        // Copy text to clipboard
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast(`Copied ${text} to clipboard!`);
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            toastMessage.textContent = message;
+            toast.classList.remove('translate-y-full');
+            setTimeout(() => {
+                toast.classList.add('translate-y-full');
+            }, 3000);
+        }
+
+        // Update contrast ratio display
+        function updateContrastRatio() {
+            const color = currentPalette.getColours()[currentSelectedIndex];
+            const rgb = color.toRGB();
+
+            // Calculate luminance (simplified)
+            const luminance = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
+
+            // Calculate contrast ratio with white text
+            const whiteContrast = luminance > 0.5 ? (luminance + 0.05) / 0.05 : 0.05 / (luminance + 0.05);
+
+            contrastRatio.textContent = `${whiteContrast.toFixed(1)}:1`;
+
+            // Update accessibility rating
+            if (whiteContrast >= 7) {
+                accessibilityRating.textContent = 'AAA';
+                accessibilityRating.className = 'accessibility-rating ml-2 px-2 py-1 text-xs rounded bg-green-100 text-green-800';
+            } else if (whiteContrast >= 4.5) {
+                accessibilityRating.textContent = 'AA';
+                accessibilityRating.className = 'accessibility-rating ml-2 px-2 py-1 text-xs rounded bg-yellow-100 text-yellow-800';
+            } else {
+                accessibilityRating.textContent = 'Fail';
+                accessibilityRating.className = 'accessibility-rating ml-2 px-2 py-1 text-xs rounded bg-red-100 text-red-800';
+            }
+        }
+
+        // Generate harmony palette
+        function generateHarmony(harmonyType) {
+            const baseColor = currentPalette.getColours()[currentSelectedIndex];
+            const harmony = new ColourHarmony(baseColor);
+            let colors;
+
+            switch(harmonyType) {
+                case 'complementary':
+                    colors = harmony.complementary();
+                    break;
+                case 'analogous':
+                    colors = harmony.analogous();
+                    break;
+                case 'triadic':
+                    colors = harmony.triadic();
+                    break;
+                case 'tetradic':
+                    colors = harmony.tetradic();
+                    break;
+                default:
+                    return;
+            }
+
+            // Create a new palette with harmony colors
+            const harmonyHexCodes = colors.map(color => color.toHex());
+            currentPalette.importHEX(harmonyHexCodes);
+            lockedColors = [false, false, false, false, false];
+
+            displayPalette();
+            showToast(`Generated ${harmonyType} harmony palette`);
+        }
+
+        // Export palette
+        function exportPalette(format) {
+            const colors = currentPalette.getColours();
+            const hexCodes = currentPalette.exportHEX();
+
+            switch(format) {
+                case 'hex':
+                    copyToClipboard(hexCodes.join('\n'));
+                    break;
+                case 'json':
+                    const paletteData = {
+                        colors: colors.map(c => ({
+                            hex: c.toHex(),
+                            rgb: c.toRGB(),
+                            hsl: c.toHSL()
+                        })),
+                        exportedAt: new Date().toISOString()
+                    };
+                    copyToClipboard(JSON.stringify(paletteData, null, 2));
+                    break;
+                case 'url':
+                    const urlHexes = hexCodes.join('-').replace(/#/g, '');
+                    const url = `${window.location.origin}${window.location.pathname}?palette=${urlHexes}`;
+                    copyToClipboard(url);
+                    break;
+            }
+        }
+
+        // Import palette
+        function importPalette(text) {
+            const hexCodes = text.split(/[\n,]+/)
+                .map(code => code.trim())
+                .filter(code => /^#[0-9A-Fa-f]{6}$/.test(code));
+
+            if (hexCodes.length > 0) {
+                currentPalette.importHEX(hexCodes);
+                lockedColors = new Array(hexCodes.length).fill(false);
+                displayPalette();
+                showToast(`Imported ${hexCodes.length} colors`);
+            } else {
+                showToast('Invalid format. Please provide valid HEX codes.');
+            }
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Spacebar to generate
+            document.addEventListener('keydown', (e) => {
+                if (e.code === 'Space') {
+                    e.preventDefault();
+                    generateNewPalette();
+                }
+            });
+
+            // Generate button
+            generateBtn.addEventListener('click', generateNewPalette);
+
+            // Harmony generation
+            harmonyBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    generateHarmony(btn.dataset.harmony);
+                });
+            });
+
+            harmonyGenerateBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    generateHarmony(btn.dataset.harmony);
+                });
+            });
+
+            // Export buttons
+            exportHexBtn.addEventListener('click', () => exportPalette('hex'));
+            exportJsonBtn.addEventListener('click', () => exportPalette('json'));
+            exportUrlBtn.addEventListener('click', () => exportPalette('url'));
+
+            // Import
+            importBtn.addEventListener('click', () => {
+                importPalette(importText.value);
+            });
+
+            // Color adjustment sliders
+            hueSlider.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                hueValue.textContent = value;
+
+                // Apply hue rotation to selected color
+                const colors = currentPalette.getColours();
+                if (colors[currentSelectedIndex]) {
+                    const currentHue = colors[currentSelectedIndex].getHue();
+                    const hueDifference = value - currentHue;
+                    const adjustedColor = colors[currentSelectedIndex].rotateHue(hueDifference);
+
+                    // Update the color in the palette
+                    const hexCodes = currentPalette.exportHEX();
+                    hexCodes[currentSelectedIndex] = adjustedColor.toHex();
+                    currentPalette.importHEX(hexCodes);
+
+                    displayPalette();
+                }
+            });
+
+            saturationSlider.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                saturationValue.textContent = value;
+
+                // Apply saturation adjustment to selected color
+                const colors = currentPalette.getColours();
+                if (colors[currentSelectedIndex]) {
+                    const currentSaturation = colors[currentSelectedIndex].getSaturation();
+                    const saturationDifference = value - currentSaturation;
+                    const adjustedColor = colors[currentSelectedIndex].adjustSaturation(saturationDifference);
+
+                    // Update the color in the palette
+                    const hexCodes = currentPalette.exportHEX();
+                    hexCodes[currentSelectedIndex] = adjustedColor.toHex();
+                    currentPalette.importHEX(hexCodes);
+
+                    displayPalette();
+                }
+            });
+
+            lightnessSlider.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                lightnessValue.textContent = value;
+
+                // Apply lightness adjustment to selected color
+                const colors = currentPalette.getColours();
+                if (colors[currentSelectedIndex]) {
+                    const currentLightness = colors[currentSelectedIndex].getLightness();
+                    const lightnessDifference = value - currentLightness;
+                    const adjustedColor = colors[currentSelectedIndex].adjustLightness(lightnessDifference);
+
+                    // Update the color in the palette
+                    const hexCodes = currentPalette.exportHEX();
+                    hexCodes[currentSelectedIndex] = adjustedColor.toHex();
+                    currentPalette.importHEX(hexCodes);
+
+                    displayPalette();
+                }
+            });
+
+            // Shuffle button
+            shuffleBtn.addEventListener('click', () => {
+                lockedColors = [false, false, false, false, false];
+                generateNewPalette();
+            });
+        }
+
+        // Start the application
+        init();
+
+        console.log('🎨 Advanced Color Palette Generator initialized');
+    </script>
+</body>
 </html>

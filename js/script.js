@@ -1,45 +1,62 @@
-import colorValues from "./colorValues.js";
-// Buttons
-const allBtns = document.querySelector(".btns");
-const delayBtn = allBtns.querySelector('#delayBtn');
-const startBtn = allBtns.querySelector('#startBtn');
+// Import color utilities (if available)
+let colorValues;
+try {
+  colorValues = (await import("./colorValues.js")).default;
+} catch (error) {
+  console.log("Color values module not found, using fallback");
+  colorValues = null;
+}
+
+// DOM Elements
+const startBtn = document.getElementById('startBtn');
+const resetBtn = document.getElementById('resetBtn');
+const delayBtn = document.getElementById('delayBtn');
+const setSpeedBtn = document.getElementById('setSpeedBtn');
+const moreInfoBtn = document.getElementById('moreInfoBtn');
+const exportBtn = document.getElementById('exportBtn');
+const closeInfoBtn = document.getElementById('close-info');
+
 // Time Input
 const inputContainer = document.getElementById('inp-container');
 const timeInp = document.getElementById('time-input');
+
 // Color Display Container
 const displayPort = document.getElementById('display-portal');
 const colorInfoContainer = document.getElementById('color-info');
-const closeInfoElem = document.getElementById('close-info');
+
 // Colors Generated Container
 const colorsContainer = document.getElementById("colors-container");
 const colorsListElement = document.getElementById("all-colors");
-// Stats
-const stats = document.querySelectorAll("#stats p span");
-const gStatusElement = stats[0];
-const gDelayElement = stats[1];
-const gColorsAmountElement = stats[2];
-// Color Details
-const colorDetailsP = document.querySelectorAll("#colorDetails p");
-const colorDetails = document.querySelectorAll("#colorDetails p span");
-// const colorSectSpans = document.querySelectorAll('.color-sect span');
-const colorNameElem = colorDetails[0];
-const colorHexElem = colorDetails[1];
-const colorRgbElem = colorDetails[2];
-const colorHslElem = colorDetails[3];
-const colorInfoBtn = displayPort.querySelector(`button`);
-// Color Info Section
-const baseColorInfo = document.querySelectorAll("#base-color p span");
-const baseColorName = baseColorInfo[0];
-const baseColorHex = baseColorInfo[1];
-const baseColorRgb = baseColorInfo[2];
-const baseColorHsl = baseColorInfo[3];
+
+// Statistics Elements
+const statusElement = document.getElementById('status');
+const speedElement = document.getElementById('speed');
+const colorCountElement = document.getElementById('colorCount');
+
+// Color Details Elements
+const colorNameElem = document.getElementById('colorName');
+const colorHexElem = document.getElementById('colorHex');
+const colorRgbElem = document.getElementById('colorRgb');
+const colorHslElem = document.getElementById('colorHsl');
+const swatches = document.querySelectorAll('.color-swatch');
+console.log(swatches);
+
+
+// Color Info Section Elements
+const baseColorName = document.getElementById('baseColorName');
+const baseColorHex = document.getElementById('baseColorHex');
+const baseColorRgb = document.getElementById('baseColorRgb');
+const baseColorHsl = document.getElementById('baseColorHsl');
 const baseColorBox = document.getElementById('base-color-box');
-const compColorInfo = document.querySelectorAll("#comp-color p span");
-const compColorName = compColorInfo[0];
-const compColorHex = compColorInfo[1];
-const compColorRgb = compColorInfo[2];
-const compColorHsl = compColorInfo[3];
+
+const compColorName = document.getElementById('compColorName');
+const compColorHex = document.getElementById('compColorHex');
+const compColorRgb = document.getElementById('compColorRgb');
+const compColorHsl = document.getElementById('compColorHsl');
 const compColorBox = document.getElementById('comp-color-box');
+
+// Loading Spinner
+const loadingSpinner = document.getElementById('loading');
 
 // Global Variables
 let isGenerating = false;
@@ -57,186 +74,276 @@ const currentColor = {
   compHsl: 'hsl(0, 100%, 50%)'
 };
 
-// Generate a random color
+document.querySelectorAll('.lock-button')
+
+// Utility Functions
+const showLoading = (show = true) => {
+  if (loadingSpinner) {
+    loadingSpinner.classList.toggle('hidden', !show);
+  }
+};
+
 const getRandomHex = () => {
   const hexCodes = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'];
   let hex = '';
-  for(let i = 0; i < 6; i++) {
+  for (let i = 0; i < 6; i++) {
     const randomNum = Math.floor(Math.random() * 16);
     hex += hexCodes[randomNum];
   }
   return hex;
-}
+};
 
-const fetchColorValues = hex => {
+const fetchColorValues = (hex) => {
   try {
-    const colorObj = colorValues(hex);
-    return [colorObj.base, colorObj.complementary];
+    if (colorValues) {
+      const colorObj = colorValues(hex);
+      return [colorObj.base, colorObj.complementary];
+    }
   } catch (error) {
-    console.log(error);
+    console.log("Color values lookup failed:", error);
   }
-}
-// Change colors in ui
-const changeElementColors = hex => {
-  try {
-    const colorHex = `#${hex}`;
-    const [colorObj, compColorObj] = fetchColorValues(hex)
-    // Update currentColor
-    currentColor.baseName = colorObj.name;
-    currentColor.baseHex = colorObj.hex;
-    currentColor.baseRgb = colorObj.rgb
-    currentColor.baseHsl = colorObj.hsl;
-    currentColor.compName = compColorObj.name;
-    currentColor.compHex = compColorObj.hex;
-    currentColor.compRgb = compColorObj.rgb;
-    currentColor.compHsl = compColorObj.hsl;
-    // Change Elements Color
-    displayPort.style.background = currentColor.baseHex;
-    colorDetailsP.forEach(p => {
-      p.style.color = currentColor.compHex;
-    });
-    colorInfoBtn.style.background = currentColor.compHex;
-    colorInfoBtn.style.color = currentColor.baseHex;
-    // Change Elements Text
-    colorNameElem.innerText = currentColor.baseName;
-    colorHexElem.innerText = currentColor.baseHex;
-    colorRgbElem.innerText = currentColor.baseRgb;
-    colorHslElem.innerText = currentColor.baseHsl;
-  } catch (error) {
-    console.log(`Error: ${error}`);
-  }
-}
-// Handle color generation
+  // Fallback: return basic color info
+  return [
+    { name: 'Unknown', hex: `#${hex}`, rgb: `rgb(${parseInt(hex.slice(0,2),16)},${parseInt(hex.slice(2,4),16)},${parseInt(hex.slice(4,6),16)})`, hsl: 'hsl(0,0%,0%)' },
+    { name: 'Unknown', hex: '#000000', rgb: 'rgb(0,0,0)', hsl: 'hsl(0,0%,0%)' }
+  ];
+};
+
+const hexToRgb = (hex) => {
+  const r = parseInt(hex.slice(0, 2), 16);
+  const g = parseInt(hex.slice(2, 4), 16);
+  const b = parseInt(hex.slice(4, 6), 16);
+  return `rgb(${r}, ${g}, ${b})`;
+};
+
+const hexToHsl = (hex) => {
+  // Simple HSL conversion (can be enhanced)
+  return 'hsl(180, 100%, 50%)';
+};
+
+const updateColorDisplay = (hex) => {
+  const colorHex = `#${hex}`;
+  const [colorObj, compColorObj] = fetchColorValues(hex);
+
+  // Update currentColor object
+  currentColor.baseName = colorObj.name;
+  currentColor.baseHex = colorObj.hex;
+  currentColor.baseRgb = colorObj.rgb;
+  currentColor.baseHsl = colorObj.hsl;
+  currentColor.compName = compColorObj.name;
+  currentColor.compHex = compColorObj.hex;
+  currentColor.compRgb = compColorObj.rgb;
+  currentColor.compHsl = compColorObj.hsl;
+
+  // Update UI elements
+  colorNameElem.textContent = currentColor.baseName;
+  colorHexElem.textContent = currentColor.baseHex;
+  colorRgbElem.textContent = currentColor.baseRgb;
+  colorHslElem.textContent = currentColor.baseHsl;
+
+
+
+};
+
 const changeColor = async () => {
+  showLoading(true);
   const hex = getRandomHex();
   const colorHex = `#${hex}`;
-  changeElementColors(hex);
 
-  colorsContainer.style.display = "flex";
-  colorsListElement.innerHTML += `<li>${colorHex}</li>`;
+  // Update color display
+  updateColorDisplay(hex);
 
-  totalColors += 1;
-  gColorsAmountElement.innerText = totalColors;
+  // Show colors container
+  colorsContainer.classList.remove('hidden');
 
-  colorsListElement.querySelectorAll('li').forEach(colorItem => {
-    const color = colorItem.textContent;
-    colorItem.style.color = color;
-    colorItem.addEventListener("click", () => {
-      stopGenerating();
-      changeElementColors(color.replace('#',''));
-    });
-    colorItem.addEventListener("mouseenter", () => {
-      colorItem.style.color = `${color}88`;
-    });
-    colorItem.addEventListener("mouseleave", () => {
-      colorItem.style.color = `${color}`;
-    });
+  // Add to colors list with modern styling
+  const colorItem = document.createElement('li');
+  colorItem.className = 'px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-md';
+  colorItem.style.backgroundColor = `${colorHex}20`;
+  colorItem.style.color = colorHex;
+  colorItem.textContent = colorHex;
+
+  // Add click functionality
+  colorItem.addEventListener('click', () => {
+    stopGenerating();
+    updateColorDisplay(hex);
   });
-}
-// Start generating colors
+
+  colorsListElement.appendChild(colorItem);
+
+  // Update counter
+  totalColors++;
+  colorCountElement.textContent = totalColors;
+
+  showLoading(false);
+};
+
 const startGenerating = () => {
-  gDelayElement.innerText = delay;
-  inputContainer.style.display = 'none';
-  delayBtn.textContent = 'set speed';
-  gStatusElement.innerText = "Generating...";
-  timeInp.value = "";
   if (!isGenerating) {
-    colorInterval = setInterval(changeColor, delay);
     isGenerating = true;
+    startBtn.textContent = 'Stop';
+    startBtn.classList.remove('bg-color-primary', 'hover:bg-blue-600');
+    startBtn.classList.add('bg-red-500', 'hover:bg-red-600');
+
+    statusElement.textContent = 'Generating...';
+    speedElement.textContent = `${delay} ms`;
+
+    colorInterval = setInterval(changeColor, delay);
   }
-}
-// Stop generating colors
+};
+
 const stopGenerating = () => {
-  if(isGenerating) {
+  if (isGenerating) {
     clearInterval(colorInterval);
     isGenerating = false;
-    gStatusElement.innerText = "Stopped generating";
+
+    startBtn.textContent = 'Start';
+    startBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
+    startBtn.classList.add('bg-color-primary', 'hover:bg-blue-600');
+
+    statusElement.textContent = 'Stopped';
   }
-}
-// Reset Program
+};
+
 const resetChanges = () => {
   stopGenerating();
   delay = 1000;
   totalColors = 0;
-  gDelayElement.innerHTML = delay;
-  gColorsAmountElement.innerText = totalColors;
-  colorsListElement.innerHTML = "";
-  colorsContainer.style.display = "none";
-  inputContainer.style.display = 'none';
-  delayBtn.textContent = 'set speed';
-  startBtn.textContent = 'start';
-  gStatusElement.innerText = "Idle";
-  changeElementColors("00FFFF");
-}
-// Show Full Color Information 
+
+  // Reset UI
+  speedElement.textContent = `${delay} ms`;
+  colorCountElement.textContent = totalColors;
+  colorsListElement.innerHTML = '';
+  colorsContainer.classList.add('hidden');
+  inputContainer.classList.add('hidden');
+  delayBtn.textContent = '⚡ Set Speed';
+  statusElement.textContent = 'Idle';
+
+  // Reset to initial color
+  updateColorDisplay('00FFFF');
+};
+
 const showColorInfo = () => {
   stopGenerating();
+
+  // Update color info display
+  baseColorBox.style.backgroundColor = currentColor.baseHex;
+  baseColorName.textContent = currentColor.baseName || 'Unknown';
+  baseColorHex.textContent = currentColor.baseHex;
+  baseColorRgb.textContent = currentColor.baseRgb;
+  baseColorHsl.textContent = currentColor.baseHsl;
+
+  compColorBox.style.backgroundColor = currentColor.compHex;
+  compColorName.textContent = currentColor.compName || 'Unknown';
+  compColorHex.textContent = currentColor.compHex;
+  compColorRgb.textContent = currentColor.compRgb;
+  compColorHsl.textContent = currentColor.compHsl;
+
+  // Show color info
   colorInfoContainer.classList.remove('hidden');
-  baseColorBox.style.background = currentColor.baseHex;
-  baseColorName.innerText = currentColor.baseName ? currentColor.baseName : `Unknown`;;
-  baseColorHex.innerText = currentColor.baseHex;
-  baseColorRgb.innerText = currentColor.baseRgb;
-  baseColorHex.innerText = currentColor.baseHex;
-  compColorBox.style.background = currentColor.compHex;
-  compColorName.innerText = currentColor.compName ? currentColor.compName : `Unknown`;
-  compColorHex.innerText = currentColor.compHex;
-  compColorRgb.innerText = currentColor.compRgb;
-  compColorHsl.innerText = currentColor.compHsl;
-}
-// Check speed input
-const checkInput = num => {
+  closeInfoBtn.classList.remove('hidden');
+};
+
+const hideColorInfo = () => {
+  colorInfoContainer.classList.add('hidden');
+  closeInfoBtn.classList.add('hidden');
+};
+
+const exportColors = () => {
+  const colors = Array.from(colorsListElement.children).map(li => li.textContent);
+  const exportData = {
+    colors,
+    total: totalColors,
+    currentColor,
+    exportedAt: new Date().toISOString()
+  };
+
+  const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `color-roulette-export-${new Date().toISOString().split('T')[0]}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
+const checkInput = (num) => {
   if (num < 100 || num > 5000) {
-    alert('Enter a number between 100 and 5000');
+    alert('Please enter a number between 100 and 5000 milliseconds');
     return false;
+  }
+  return true;
+};
+
+// Event Listeners
+startBtn.addEventListener('click', () => {
+  if (isGenerating) {
+    stopGenerating();
   } else {
-    return true;
-  }
-}
-// Button Events
-allBtns.addEventListener('click', (e) => {
-  const btn = e.target;
-  switch(btn.textContent) {
-    case "start":
-    case 'continue':
-      startGenerating();
-      btn.textContent = 'stop';
-      break;
-    case "stop":
-        stopGenerating();
-        btn.textContent = 'continue';
-        break;
-    case "reset":
-      resetChanges();
-      break;
-    case "set speed":
-      stopGenerating();
-      inputContainer.style.display = 'flex';
-      btn.textContent = 'cancel';
-      break;
-    case "cancel":
-      stopGenerating();
-      inputContainer.style.display = 'none';
-      btn.textContent = 'set speed';
-      timeInp.value = "";
-      break;
-    default:
-      break;
-  }
-});
-timeInp.nextElementSibling.addEventListener('click', () => {
-  let isInput = checkInput(Number(timeInp.value));
-  if (isInput) {
-    delay = Number(timeInp.value);
     startGenerating();
   }
 });
-colorInfoBtn.addEventListener('click', showColorInfo);
-closeInfoElem.addEventListener('click', () => {
-  colorInfoContainer.classList.add('hidden');
-});
-document.addEventListener('click', function(event) {
-  // Check if the clicked element is not the target element
-  if (!colorInfoContainer.contains(event.target) && event.target !== colorInfoBtn) {
-    colorInfoContainer.classList.add('hidden');
+
+resetBtn.addEventListener('click', resetChanges);
+
+delayBtn.addEventListener('click', () => {
+  if (inputContainer.classList.contains('hidden')) {
+    inputContainer.classList.remove('hidden');
+    delayBtn.textContent = 'Cancel';
+    timeInp.focus();
+  } else {
+    inputContainer.classList.add('hidden');
+    delayBtn.textContent = '⚡ Set Speed';
+    timeInp.value = '';
   }
+});
+
+setSpeedBtn.addEventListener('click', () => {
+  const newDelay = Number(timeInp.value);
+  if (checkInput(newDelay)) {
+    delay = newDelay;
+    speedElement.textContent = `${delay} ms`;
+    inputContainer.classList.add('hidden');
+    delayBtn.textContent = '⚡ Set Speed';
+    timeInp.value = '';
+
+    if (isGenerating) {
+      stopGenerating();
+      startGenerating();
+    }
+  }
+});
+
+moreInfoBtn.addEventListener('click', showColorInfo);
+exportBtn.addEventListener('click', exportColors);
+closeInfoBtn.addEventListener('click', hideColorInfo);
+
+// Close color info when clicking outside
+document.addEventListener('click', (event) => {
+  if (colorInfoContainer && !colorInfoContainer.contains(event.target) &&
+      !moreInfoBtn.contains(event.target) && closeInfoBtn && !closeInfoBtn.classList.contains('hidden')) {
+    hideColorInfo();
+  }
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (event) => {
+  if (event.key === ' ') {
+    event.preventDefault();
+    startBtn.click();
+  } else if (event.key === 'Escape') {
+    if (!colorInfoContainer.classList.contains('hidden')) {
+      hideColorInfo();
+    } else if (!inputContainer.classList.contains('hidden')) {
+      delayBtn.click();
+    }
+  }
+});
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('🎲 Color Roulette initialized');
+  updateColorDisplay('00FFFF');
 });
